@@ -1,0 +1,28 @@
+NOMBRE: María Gómez
+EMAIL: maria.gomez@email.com
+TELÉFONO: 3019876543
+
+PERFIL:
+Docente en matemáticas con 10 años de experiencia en educación superior.
+
+FORMACIÓN ACADÉMICA:
+- Ingeniera Matemática - Universidad Nacional - 2010
+- Maestría en Matemáticas Aplicadas - 2015
+
+EXPERIENCIA DOCENTE:
+- Profesora - Universidad Distrital - 6 años
+- Docente - Universidad Libre - 4 años
+
+ÁREAS DE ENSEÑANZA:
+- Matemáticas
+- Estadística
+- Álgebra
+
+HABILIDADES:
+- Análisis de datos
+- Docencia
+- Python
+
+IDIOMAS:
+- Español
+- Inglés (B2)

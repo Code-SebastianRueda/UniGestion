@@ -1,0 +1,28 @@
+NOMBRE: Juan Pérez
+EMAIL: juan.perez@email.com
+TELÉFONO: 3001234567
+
+PERFIL:
+Profesor universitario con 8 años de experiencia en docencia e investigación en filosofía contemporánea.
+
+FORMACIÓN ACADÉMICA:
+- Licenciado en Filosofía - Universidad Nacional - 2012
+- Maestría en Filosofía - Universidad de los Andes - 2016
+
+EXPERIENCIA DOCENTE:
+- Profesor de Filosofía - Universidad Javeriana - 5 años
+- Docente - Politécnico Grancolombiano - 3 años
+
+ÁREAS DE ENSEÑANZA:
+- Filosofía
+- Ética
+- Lógica
+
+HABILIDADES:
+- Investigación
+- Docencia
+- Pensamiento crítico
+
+IDIOMAS:
+- Español
+- Inglés (C1)
