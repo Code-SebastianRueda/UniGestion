@@ -184,15 +184,10 @@ python generate_cvs.py
 - Generación de documentos PDF
 - Interfaces web básicas
 
-### Pendiente 🚧
-- Mejora del parser de CVs (actualmente usa datos dummy)
-- Implementación completa de extracción DOCX
-- Sistema de notificaciones
-- API de métricas y reportes
-- Tests automatizados
 
 ## 👥 Equipo
-
+Wilson David Florez 
+Juan Sebastian Rueda
 Proyecto desarrollado como parte del curso de Gestión de Proyectos en el Politécnico Grancolombiano.
 
 ## 📄 Licencia
