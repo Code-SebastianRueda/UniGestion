@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniGestión HR - Portal Candidato</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="/static/css/styles.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="bi bi-people-fill"></i> UniGestión</h2>
+                <small>Portal del Candidato</small>
+            </div>
+            <ul class="sidebar-nav">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#" data-section="section-profile" onclick="showSection('section-profile')">
+                        <i class="bi bi-person"></i> Mi Perfil
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-section="section-cv" onclick="showSection('section-cv')">
+                        <i class="bi bi-file-earmark-pdf"></i> Mi CV
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-section="section-skills" onclick="showSection('section-skills')">
+                        <i class="bi bi-stars"></i> Habilidades
+                    </a>
+                </li>
+            </ul>
+            <div class="sidebar-footer">
+                <a class="nav-link" href="#" onclick="logout()">
+                    <i class="bi bi-box-arrow-left"></i> Cerrar Sesión
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <nav class="top-navbar">
+                <span class="page-title">Portal del Candidato</span>
+                <div class="user-info">
+                    <span id="user-name-display"></span>
+                    <div class="user-avatar" id="user-avatar"></div>
+                </div>
+            </nav>
+
+            <div class="content-area">
+                <div id="alert-container"></div>
+
+                <!-- Profile Section -->
+                <div id="section-profile" class="content-section">
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <div class="stat-card text-center">
+                                <div class="stat-icon blue mx-auto"><i class="bi bi-person-badge"></i></div>
+                                <h5 id="profile-name">Cargando...</h5>
+                                <p class="text-muted" id="profile-email"></p>
+                                <span class="badge bg-info">Candidato</span>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="stat-card">
+                                <h5 class="mb-3"><i class="bi bi-info-circle"></i> Información del Perfil</h5>
+                                <div id="profile-details">
+                                    <p class="text-muted">Cargando información...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CV Upload Section -->
+                <div id="section-cv" class="content-section" style="display: none;">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="stat-card">
+                                <h5 class="mb-3"><i class="bi bi-cloud-upload"></i> Subir Hoja de Vida</h5>
+                                <div class="upload-area" onclick="document.getElementById('cv-file').click()">
+                                    <i class="bi bi-file-earmark-pdf d-block"></i>
+                                    <h6>Arrastra o haz clic para subir tu CV</h6>
+                                    <p class="text-muted">Solo archivos PDF (máx. 10MB)</p>
+                                </div>
+                                <input type="file" id="cv-file" accept=".pdf" style="display: none;" onchange="uploadCV(this)">
+                                <div id="upload-status" class="mt-3"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="stat-card">
+                                <h5 class="mb-3"><i class="bi bi-file-check"></i> CV Procesado</h5>
+                                <div id="cv-parsed-info">
+                                    <div class="empty-state">
+                                        <i class="bi bi-file-earmark-x d-block"></i>
+                                        <p>No hay CV procesado aún</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Skills Section -->
+                <div id="section-skills" class="content-section" style="display: none;">
+                    <div class="stat-card">
+                        <h5 class="mb-3"><i class="bi bi-stars"></i> Mis Habilidades Detectadas</h5>
+                        <div id="skills-container">
+                            <div class="empty-state">
+                                <i class="bi bi-stars d-block"></i>
+                                <p>Sube tu CV para detectar habilidades automáticamente</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/app.js"></script>
+    <script>
+        // Auth check
+        if (!requireAuth(['candidate'])) { /* redirected */ }
+
+        const user = getUser();
+        document.getElementById('user-name-display').textContent = user.full_name;
+        document.getElementById('user-avatar').textContent = getUserInitials(user.full_name);
+
+        // Load profile
+        async function loadProfile() {
+            try {
+                const data = await apiCall('/api/candidates/profile');
+                document.getElementById('profile-name').textContent = data.user.full_name;
+                document.getElementById('profile-email').textContent = data.user.email;
+
+                if (data.resume) {
+                    document.getElementById('profile-details').innerHTML = `
+                        <p><strong>Resumen:</strong> ${data.resume.summary || 'N/A'}</p>
+                        <p><strong>Habilidades:</strong> ${data.resume.skills.map(s => `<span class="skill-tag">${s}</span>`).join(' ')}</p>
+                        <p><strong>Áreas:</strong> ${data.resume.areas.join(', ')}</p>
+                        <p><strong>Idiomas:</strong> ${data.resume.languages.join(', ')}</p>
+                    `;
+
+                    // Update CV section
+                    document.getElementById('cv-parsed-info').innerHTML = `
+                        <p><strong>Skills:</strong></p>
+                        <div class="mb-2">${data.resume.skills.map(s => `<span class="skill-tag">${s}</span>`).join(' ')}</div>
+                        <p><strong>Educación:</strong></p>
+                        <ul>${data.resume.education.map(e => `<li>${e}</li>`).join('')}</ul>
+                        <p><strong>Experiencia:</strong></p>
+                        <ul>${data.resume.experience.map(e => `<li>${e}</li>`).join('')}</ul>
+                    `;
+
+                    // Update skills section
+                    document.getElementById('skills-container').innerHTML = `
+                        <div class="row g-3">
+                            ${data.resume.skills.map(s => `
+                                <div class="col-auto">
+                                    <span class="skill-tag" style="font-size: 14px; padding: 6px 14px;">${s}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                showAlert('Error cargando perfil', 'danger');
+            }
+        }
+
+        async function uploadCV(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            document.getElementById('upload-status').innerHTML = '<div class="text-primary"><span class="loading-spinner"></span> Procesando CV...</div>';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const data = await apiCall('/api/candidates/upload-cv', {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+
+                document.getElementById('upload-status').innerHTML = '<div class="text-success"><i class="bi bi-check-circle"></i> CV procesado exitosamente</div>';
+                showAlert('CV subido y procesado correctamente', 'success');
+                loadProfile();
+            } catch (error) {
+                document.getElementById('upload-status').innerHTML = `<div class="text-danger"><i class="bi bi-x-circle"></i> ${error.message}</div>`;
+            }
+        }
+
+        loadProfile();
+    </script>
+</body>
+</html>

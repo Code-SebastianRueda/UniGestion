@@ -1,34 +1,41 @@
+version: '3.8'
+
 services:
   db:
-    image: postgres:15
+    image: postgres:15-alpine
     container_name: hr_postgres
-    restart: always
     environment:
-      POSTGRES_USER: hr_user
-      POSTGRES_PASSWORD: hr_password
-      POSTGRES_DB: hr_db
+      POSTGRES_DB: hrplatform
+      POSTGRES_USER: hruser
+      POSTGRES_PASSWORD: hrpass123
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U hr_user"]
+      test: ["CMD-SHELL", "pg_isready -U hruser -d hrplatform"]
       interval: 5s
       timeout: 5s
       retries: 5
 
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: hr_backend
-    depends_on:
-      db:
-        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://hruser:hrpass123@db:5432/hrplatform
+      SECRET_KEY: hr-platform-secret-key-2024-production
     ports:
       - "8000:8000"
     volumes:
       - ./backend:/app
-      - ./storage:/app/storage
+      - uploads_data:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
 
 volumes:
   postgres_data:
+  uploads_data:

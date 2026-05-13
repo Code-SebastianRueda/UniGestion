@@ -1,21 +1,26 @@
 """
-Configuración de la base de datos PostgreSQL.
-
-Establece la conexión a la base de datos usando SQLAlchemy y configura
-la sesión y el motor de base de datos para toda la aplicación.
+Database configuration and session management.
+Uses SQLAlchemy with PostgreSQL.
 """
-
+import os
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
-# URL de conexión a PostgreSQL (configurado para Docker Compose)
-DATABASE_URL = "postgresql://hr_user:hr_password@db:5432/hr_db"
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql://hruser:hrpass123@db:5432/hrplatform"
+)
 
-# Motor de base de datos SQLAlchemy
 engine = create_engine(DATABASE_URL)
-
-# Fábrica de sesiones para crear conexiones de base de datos
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Clase base para todos los modelos SQLAlchemy
 Base = declarative_base()
+
+
+def get_db():
+    """Dependency to get database session."""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

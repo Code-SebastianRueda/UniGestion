@@ -1,197 +1,167 @@
 """
-Modelos de base de datos para el sistema de gestión de recursos humanos.
-
-Define todas las tablas y relaciones usando SQLAlchemy ORM. Los modelos incluyen:
-- Usuarios y autenticación
-- Perfiles de candidatos y CVs
-- Información de empleados
-- Nómina y beneficios
-- Gestión de vacaciones
-- Documentos y solicitudes
-
-Todos los modelos heredan de Base y usan PostgreSQL como backend.
+SQLAlchemy models for the HR Platform.
+Defines all database tables and relationships.
 """
-
-from sqlalchemy import Column, Integer, String, ForeignKey, Text, TIMESTAMP
+from sqlalchemy import (
+    Column, Integer, String, Float, Text, DateTime, Date,
+    ForeignKey, Enum, Boolean
+)
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from sqlalchemy.dialects.postgresql import JSON
+import enum
 
-from app.database import Base
+from .database import Base
 
-# ==============================
-# MODELOS DE CANDIDATOS
-# ==============================
+
+class UserRole(str, enum.Enum):
+    CANDIDATE = "candidate"
+    EMPLOYEE = "employee"
+    RH = "rh"
+
+
+class VacationStatus(str, enum.Enum):
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+
+
+class RequestStatus(str, enum.Enum):
+    PENDING = "pending"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    REJECTED = "rejected"
+
+
+class RequestType(str, enum.Enum):
+    PERMISSION = "permisos"
+    CERTIFICATE = "certificados"
+    DATA_UPDATE = "actualización datos"
+    GENERAL = "solicitudes generales"
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String(255), unique=True, index=True, nullable=False)
+    password_hash = Column(String(255), nullable=False)
+    full_name = Column(String(255), nullable=False)
+    role = Column(String(50), default=UserRole.CANDIDATE)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    # Relationships
+    resume = relationship("Resume", back_populates="user", uselist=False)
+    candidate_profile = relationship("CandidateProfile", back_populates="user", uselist=False)
+    employee_profile = relationship("EmployeeProfile", back_populates="user", uselist=False)
+    vacations = relationship("Vacation", back_populates="user", foreign_keys="[Vacation.user_id]")
+    payrolls = relationship("Payroll", back_populates="user")
+    requests = relationship("InternalRequest", back_populates="user", foreign_keys="[InternalRequest.user_id]")
+
 
 class Resume(Base):
-    """
-    Modelo para almacenar CVs subidos por candidatos.
-
-    Almacena la ruta del archivo y el texto extraído para procesamiento posterior.
-    """
     __tablename__ = "resumes"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(String, ForeignKey("users.id"))  # ID del usuario candidato
-    file_path = Column(String)  # Ruta al archivo PDF/DOCX
-    raw_text = Column(Text)  # Texto extraído del CV
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    file_path = Column(String(500))
+    raw_text = Column(Text)
+    parsed_skills = Column(Text)  # JSON string
+    parsed_experience = Column(Text)  # JSON string
+    parsed_education = Column(Text)  # JSON string
+    parsed_languages = Column(Text)  # JSON string
+    parsed_areas = Column(Text)  # JSON string
+    professional_summary = Column(Text)
+    embedding_vector = Column(Text)  # JSON string of float array
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    user = relationship("User", back_populates="resume")
 
 
 class CandidateProfile(Base):
-    """
-    Perfil estructurado de candidato extraído del CV.
-
-    Contiene información parseada del CV: educación, experiencia, habilidades, etc.
-    """
     __tablename__ = "candidate_profiles"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(String, ForeignKey("users.id"))  # ID del usuario candidato
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    phone = Column(String(50))
+    city = Column(String(100))
+    country = Column(String(100))
+    linkedin = Column(String(255))
+    portfolio = Column(String(255))
+    years_experience = Column(Integer, default=0)
+    desired_position = Column(String(255))
+    availability = Column(String(100))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    education = Column(JSON)  # Lista de títulos educativos
-    experience_years = Column(Integer)  # Años de experiencia
-    skills = Column(JSON)  # Lista de habilidades técnicas
-    areas = Column(JSON)  # Áreas de especialización académica
-    languages = Column(JSON)  # Idiomas
-    summary = Column(Text)  # Resumen del perfil
-
-# ==============================
-# MODELOS DE USUARIOS Y EMPLEADOS
-# ==============================
-
-class User(Base):
-    """
-    Modelo base de usuarios del sistema.
-
-    Maneja autenticación y roles para candidatos, empleados y RH.
-    """
-    __tablename__ = "users"
-
-    id = Column(String, primary_key=True, index=True)  # Número de identificación
-    name = Column(String)  # Nombre completo
-    email = Column(String, unique=True, index=True)  # Email único
-    password = Column(String)  # Contraseña (debería estar hasheada)
-    role = Column(String)  # Rol: candidate, rh, employee
-
-    created_at = Column(TIMESTAMP, server_default=func.now())  # Fecha de creación
+    user = relationship("User", back_populates="candidate_profile")
 
 
-class Employee(Base):
-    """
-    Información detallada de empleados activos.
-
-    Extiende la información básica del usuario con datos laborales.
-    """
-    __tablename__ = "employees"
+class EmployeeProfile(Base):
+    __tablename__ = "employee_profiles"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(String, ForeignKey("users.id"))  # Referencia al usuario
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    employee_id = Column(String(50), unique=True)
+    department = Column(String(100))
+    position = Column(String(255))
+    hire_date = Column(Date)
+    salary = Column(Float)
+    phone = Column(String(50))
+    address = Column(Text)
+    emergency_contact = Column(String(255))
+    emergency_phone = Column(String(50))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    name = Column(String)  # Nombre (duplicado para consultas)
-    email = Column(String, unique=True)  # Email laboral
-
-    position = Column(String)  # Cargo actual
-    salary = Column(Integer)  # Salario base
-    start_date = Column(String)  # Fecha de ingreso
-
-    phone = Column(String)  # Teléfono de contacto
-    address = Column(String)  # Dirección
-
-    created_at = Column(TIMESTAMP, server_default=func.now())
-
-# ==============================
-# MODELOS DE GESTIÓN LABORAL
-# ==============================
-
-class Payroll(Base):
-    """
-    Registros de nómina y pagos a empleados.
-
-    Almacena información de salario, bonos y deducciones por período.
-    """
-    __tablename__ = "payrolls"
-
-    id = Column(Integer, primary_key=True, index=True)
-    employee_id = Column(Integer, ForeignKey("employees.id"))  # Empleado
-
-    period = Column(String)  # Período de pago (ej: "2024-01")
-    salary = Column(Integer)  # Salario base
-    bonuses = Column(Integer)  # Bonos adicionales
-    deductions = Column(Integer)  # Deducciones
-    net_salary = Column(Integer)  # Salario neto
-
-    created_at = Column(TIMESTAMP, server_default=func.now())
+    user = relationship("User", back_populates="employee_profile")
 
 
 class Vacation(Base):
-    """
-    Solicitudes y registros de vacaciones de empleados.
-
-    Gestiona el flujo de aprobación de días de vacaciones.
-    """
     __tablename__ = "vacations"
 
     id = Column(Integer, primary_key=True, index=True)
-    employee_id = Column(Integer, ForeignKey("employees.id"))  # Empleado solicitante
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    start_date = Column(Date, nullable=False)
+    end_date = Column(Date, nullable=False)
+    days_requested = Column(Integer, nullable=False)
+    reason = Column(Text)
+    status = Column(String(50), default=VacationStatus.PENDING)
+    reviewed_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    review_date = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    start_date = Column(String)  # Fecha de inicio
-    end_date = Column(String)  # Fecha de fin
-    days = Column(Integer)  # Número de días
-
-    status = Column(String, default="pending")  # Estado: pending, approved, rejected
-
-    created_at = Column(TIMESTAMP, server_default=func.now())
+    user = relationship("User", back_populates="vacations", foreign_keys=[user_id])
 
 
-class Document(Base):
-    """
-    Documentos asociados a empleados.
-
-    Almacena certificados, contratos y otros documentos importantes.
-    """
-    __tablename__ = "documents"
+class Payroll(Base):
+    __tablename__ = "payrolls"
 
     id = Column(Integer, primary_key=True, index=True)
-    employee_id = Column(Integer, ForeignKey("employees.id"))  # Empleado propietario
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    period = Column(String(50), nullable=False)  # e.g., "2024-01"
+    salary = Column(Float, nullable=False)
+    bonuses = Column(Float, default=0.0)
+    deductions = Column(Float, default=0.0)
+    net_salary = Column(Float, nullable=False)
+    payment_date = Column(Date)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    name = Column(String)  # Nombre del documento
-    file_path = Column(String)  # Ruta al archivo
-
-    created_at = Column(TIMESTAMP, server_default=func.now())
-
-
-class Request(Base):
-    """
-    Solicitudes generales de empleados.
-
-    Para permisos, cambios, quejas u otras peticiones.
-    """
-    __tablename__ = "requests"
-
-    id = Column(Integer, primary_key=True, index=True)
-    employee_id = Column(Integer, ForeignKey("employees.id"))  # Empleado solicitante
-
-    type = Column(String)  # Tipo de solicitud
-    description = Column(Text)  # Descripción detallada
-
-    status = Column(String, default="open")  # Estado: open, resolved
-
-    created_at = Column(TIMESTAMP, server_default=func.now())
+    user = relationship("User", back_populates="payrolls")
 
 
-class JobHistory(Base):
-    """
-    Historial de posiciones y salarios de empleados.
-
-    Registra cambios de cargo y ajustes salariales a lo largo del tiempo.
-    """
-    __tablename__ = "job_history"
+class InternalRequest(Base):
+    __tablename__ = "internal_requests"
 
     id = Column(Integer, primary_key=True, index=True)
-    employee_id = Column(Integer, ForeignKey("employees.id"))  # Empleado
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    request_type = Column(String(100), nullable=False)
+    subject = Column(String(255), nullable=False)
+    description = Column(Text)
+    status = Column(String(50), default=RequestStatus.PENDING)
+    response = Column(Text)
+    reviewed_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
-    position = Column(String)  # Cargo en ese período
-    salary = Column(Integer)  # Salario en ese período
-
-    start_date = Column(String)  # Fecha de inicio del cargo
-    end_date = Column(String)  # Fecha de fin (null si actual)
-
+    user = relationship("User", back_populates="requests", foreign_keys=[user_id])
