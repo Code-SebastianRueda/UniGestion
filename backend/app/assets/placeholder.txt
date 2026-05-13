@@ -1,0 +1,2 @@
+Place your company logo.png file here (recommended: 200x100px PNG with transparent background).
+The PDF generator will use this logo for payroll slips and certificates.

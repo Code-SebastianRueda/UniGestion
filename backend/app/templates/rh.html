@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniGestión HR - Panel RH</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="/static/css/styles.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="bi bi-people-fill"></i> UniGestión</h2>
+                <small>Panel de Recursos Humanos</small>
+            </div>
+            <ul class="sidebar-nav">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#" data-section="section-dashboard" onclick="showSection('section-dashboard')">
+                        <i class="bi bi-speedometer2"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-section="section-chat" onclick="showSection('section-chat')">
+                        <i class="bi bi-chat-dots"></i> Chat IA
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-section="section-candidates" onclick="showSection('section-candidates')">
+                        <i class="bi bi-person-plus"></i> Candidatos
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-section="section-employees" onclick="showSection('section-employees')">
+                        <i class="bi bi-people"></i> Empleados
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-section="section-vacations" onclick="showSection('section-vacations')">
+                        <i class="bi bi-calendar-check"></i> Vacaciones
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-section="section-requests" onclick="showSection('section-requests')">
+                        <i class="bi bi-envelope"></i> Solicitudes
+                    </a>
+                </li>
+            </ul>
+            <div class="sidebar-footer">
+                <a class="nav-link" href="#" onclick="logout()">
+                    <i class="bi bi-box-arrow-left"></i> Cerrar Sesión
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <nav class="top-navbar">
+                <span class="page-title">Panel de Recursos Humanos</span>
+                <div class="user-info">
+                    <span id="user-name-display"></span>
+                    <div class="user-avatar" id="user-avatar"></div>
+                </div>
+            </nav>
+
+            <div class="content-area">
+                <div id="alert-container"></div>
+
+                <!-- Dashboard Section -->
+                <div id="section-dashboard" class="content-section">
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-3">
+                            <div class="stat-card">
+                                <div class="stat-icon blue"><i class="bi bi-people"></i></div>
+                                <div class="stat-value" id="stat-employees">0</div>
+                                <div class="stat-label">Empleados</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card">
+                                <div class="stat-icon cyan"><i class="bi bi-person-plus"></i></div>
+                                <div class="stat-value" id="stat-candidates">0</div>
+                                <div class="stat-label">Candidatos</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card">
+                                <div class="stat-icon orange"><i class="bi bi-calendar"></i></div>
+                                <div class="stat-value" id="stat-vacations">0</div>
+                                <div class="stat-label">Vacaciones Pendientes</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card">
+                                <div class="stat-icon red"><i class="bi bi-envelope"></i></div>
+                                <div class="stat-value" id="stat-requests">0</div>
+                                <div class="stat-label">Solicitudes Pendientes</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <h5><i class="bi bi-graph-up"></i> Resumen General</h5>
+                        <p class="text-muted mt-2">Bienvenido al panel de administración de Recursos Humanos. Utiliza el Chat IA para buscar candidatos de forma inteligente.</p>
+                    </div>
+                </div>
+
+                <!-- Chat IA Section -->
+                <div id="section-chat" class="content-section" style="display: none;">
+                    <div class="chat-container">
+                        <div class="chat-header">
+                            <h5><i class="bi bi-robot"></i> Asistente IA de Búsqueda de Candidatos</h5>
+                            <small>Busca candidatos usando lenguaje natural</small>
+                        </div>
+                        <div class="chat-messages" id="chat-messages">
+                            <div class="chat-message assistant">
+                                <pre>¡Hola! Soy el asistente de búsqueda de candidatos. Puedes preguntarme cosas como:
+
+• "Necesito un desarrollador Python"
+• "Busco profesor de álgebra"
+• "Candidatos con experiencia en IA"
+• "Muéstrame perfiles académicos"
+
+¿En qué puedo ayudarte?</pre>
+                            </div>
+                        </div>
+                        <div class="chat-input-area">
+                            <input type="text" id="chat-input" placeholder="Escribe tu búsqueda..." onkeypress="if(event.key==='Enter')sendChat()">
+                            <button onclick="sendChat()"><i class="bi bi-send"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Candidates Section -->
+                <div id="section-candidates" class="content-section" style="display: none;">
+                    <div class="section-header">
+                        <h4><i class="bi bi-person-plus"></i> Gestión de Candidatos</h4>
+                    </div>
+                    <div class="data-table">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Email</th>
+                                    <th>CV</th>
+                                    <th>Skills</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="candidates-table">
+                                <tr><td colspan="5" class="text-center text-muted">Cargando...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Employees Section -->
+                <div id="section-employees" class="content-section" style="display: none;">
+                    <h4 class="mb-4"><i class="bi bi-people"></i> Empleados Activos</h4>
+                    <div class="data-table">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Departamento</th>
+                                    <th>Cargo</th>
+                                    <th>Fecha Ingreso</th>
+                                </tr>
+                            </thead>
+                            <tbody id="employees-table">
+                                <tr><td colspan="5" class="text-center text-muted">Cargando...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Vacations Section -->
+                <div id="section-vacations" class="content-section" style="display: none;">
+                    <h4 class="mb-4"><i class="bi bi-calendar-check"></i> Gestión de Vacaciones</h4>
+                    <div class="data-table">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Empleado</th>
+                                    <th>Inicio</th>
+                                    <th>Fin</th>
+                                    <th>Días</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rh-vacations-table">
+                                <tr><td colspan="6" class="text-center text-muted">Cargando...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Requests Section -->
+                <div id="section-requests" class="content-section" style="display: none;">
+                    <h4 class="mb-4"><i class="bi bi-envelope"></i> Solicitudes Internas</h4>
+                    <div class="data-table">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Empleado</th>
+                                    <th>Tipo</th>
+                                    <th>Asunto</th>
+                                    <th>Estado</th>
+                                    <th>Fecha</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rh-requests-table">
+                                <tr><td colspan="5" class="text-center text-muted">Cargando...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Convert to Employee Modal -->
+    <div class="modal fade" id="convertModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Convertir a Empleado</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="convert-user-id">
+                    <div class="mb-3">
+                        <label class="form-label">ID Empleado</label>
+                        <input type="text" class="form-control" id="convert-emp-id" placeholder="EMP-001">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Departamento</label>
+                        <input type="text" class="form-control" id="convert-dept" placeholder="Tecnología">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Cargo</label>
+                        <input type="text" class="form-control" id="convert-position" placeholder="Desarrollador Senior">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Salario</label>
+                        <input type="number" class="form-control" id="convert-salary" placeholder="5000000">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="convertToEmployee()">Convertir</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/app.js"></script>
+    <script>
+        if (!requireAuth(['rh'])) { /* redirected */ }
+
+        const user = getUser();
+        document.getElementById('user-name-display').textContent = user.full_name;
+        document.getElementById('user-avatar').textContent = getUserInitials(user.full_name);
+
+        let chatHistory = [];
+
+        // Load Dashboard
+        async function loadDashboard() {
+            try {
+                const data = await apiCall('/api/rh/dashboard');
+                document.getElementById('stat-employees').textContent = data.total_employees;
+                document.getElementById('stat-candidates').textContent = data.total_candidates;
+                document.getElementById('stat-vacations').textContent = data.pending_vacations;
+                document.getElementById('stat-requests').textContent = data.pending_requests;
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+            }
+        }
+
+        // Chat IA
+        async function sendChat() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            if (!message) return;
+
+            // Add user message
+            addChatMessage(message, 'user');
+            input.value = '';
+            chatHistory.push({ role: 'user', content: message });
+
+            // Show typing indicator
+            const typingId = addChatMessage('<span class="loading-spinner" style="border-top-color: var(--primary);"></span> Buscando...', 'assistant');
+
+            try {
+                const data = await apiCall('/api/rh/chat', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        message: message,
+                        history: chatHistory
+                    })
+                });
+
+                // Remove typing indicator
+                document.getElementById(typingId).remove();
+
+                // Add response
+                addChatMessage(data.response, 'assistant');
+                chatHistory.push({ role: 'assistant', content: data.response });
+
+            } catch (error) {
+                document.getElementById(typingId).remove();
+                addChatMessage('Error al procesar la búsqueda. Intenta de nuevo.', 'assistant');
+            }
+        }
+
+        function addChatMessage(content, role) {
+            const container = document.getElementById('chat-messages');
+            const id = 'msg-' + Date.now();
+            const div = document.createElement('div');
+            div.id = id;
+            div.className = `chat-message ${role}`;
+            div.innerHTML = `<pre>${content}</pre>`;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+            return id;
+        }
+
+        // Candidates
+        async function loadCandidates() {
+            try {
+                const data = await apiCall('/api/rh/candidates');
+                const tbody = document.getElementById('candidates-table');
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No hay candidatos registrados</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = data.map(c => `
+                    <tr>
+                        <td>${c.full_name}</td>
+                        <td>${c.email}</td>
+                        <td>${c.has_resume ? '<span class="badge bg-success">Sí</span>' : '<span class="badge bg-secondary">No</span>'}</td>
+                        <td>${(c.skills || []).slice(0, 3).map(s => `<span class="skill-tag">${s}</span>`).join(' ')}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" onclick="openConvertModal(${c.id}, '${c.full_name}')">
+                                <i class="bi bi-person-check"></i> Contratar
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading candidates:', error);
+            }
+        }
+
+        // Employees
+        async function loadEmployees() {
+            try {
+                const data = await apiCall('/api/rh/employees');
+                const tbody = document.getElementById('employees-table');
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No hay empleados registrados</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = data.map(e => `
+                    <tr>
+                        <td>${e.employee_id}</td>
+                        <td>${e.full_name}</td>
+                        <td>${e.department}</td>
+                        <td>${e.position}</td>
+                        <td>${formatDate(e.hire_date)}</td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading employees:', error);
+            }
+        }
+
+        // Vacations
+        async function loadVacations() {
+            try {
+                const data = await apiCall('/api/rh/vacations');
+                const tbody = document.getElementById('rh-vacations-table');
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No hay solicitudes</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = data.map(v => `
+                    <tr>
+                        <td>${v.employee_name}</td>
+                        <td>${formatDate(v.start_date)}</td>
+                        <td>${formatDate(v.end_date)}</td>
+                        <td>${v.days_requested}</td>
+                        <td>${getStatusBadge(v.status)}</td>
+                        <td>
+                            ${v.status === 'pending' ? `
+                                <button class="btn btn-sm btn-success me-1" onclick="manageVacation(${v.id}, 'approved')">
+                                    <i class="bi bi-check"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="manageVacation(${v.id}, 'rejected')">
+                                    <i class="bi bi-x"></i>
+                                </button>
+                            ` : '-'}
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading vacations:', error);
+            }
+        }
+
+        // Requests
+        async function loadRequests() {
+            try {
+                const data = await apiCall('/api/rh/requests');
+                const tbody = document.getElementById('rh-requests-table');
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No hay solicitudes</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = data.map(r => `
+                    <tr>
+                        <td>${r.employee_name}</td>
+                        <td>${r.request_type}</td>
+                        <td>${r.subject}</td>
+                        <td>${getStatusBadge(r.status)}</td>
+                        <td>${formatDate(r.created_at)}</td>
+                        <td>
+                            ${r.status === 'pending' ? `
+                                <button class="btn btn-sm btn-success me-1" onclick="manageRequest(${r.id}, 'approved')">
+                                    <i class="bi bi-check"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="manageRequest(${r.id}, 'rejected')">
+                                    <i class="bi bi-x"></i>
+                                </button>
+                            ` : '-'}
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading requests:', error);
+            }
+        }
+
+        async function manageRequest(id, action) {
+            try {
+                await apiCall(`/api/rh/requests/${id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ action: action, response: '' })
+                });
+                showAlert(`Solicitud ${action === 'approved' ? 'aprobada' : 'rechazada'}`, 'success');
+                loadRequests();
+                loadDashboard();
+            } catch (error) {
+                showAlert(error.message, 'danger');
+            }
+        }
+
+        async function manageVacation(id, action) {
+            try {
+                await apiCall(`/api/rh/vacations/${id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ action: action })
+                });
+                showAlert(`Vacación ${action === 'approved' ? 'aprobada' : 'rechazada'}`, 'success');
+                loadVacations();
+                loadDashboard();
+            } catch (error) {
+                showAlert(error.message, 'danger');
+            }
+        }
+
+        function openConvertModal(userId, name) {
+            document.getElementById('convert-user-id').value = userId;
+            new bootstrap.Modal(document.getElementById('convertModal')).show();
+        }
+
+        async function convertToEmployee() {
+            try {
+                await apiCall('/api/rh/convert-employee', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        user_id: parseInt(document.getElementById('convert-user-id').value),
+                        employee_id: document.getElementById('convert-emp-id').value,
+                        department: document.getElementById('convert-dept').value,
+                        position: document.getElementById('convert-position').value,
+                        salary: parseFloat(document.getElementById('convert-salary').value)
+                    })
+                });
+                bootstrap.Modal.getInstance(document.getElementById('convertModal')).hide();
+                showAlert('Candidato convertido a empleado exitosamente', 'success');
+                loadCandidates();
+                loadEmployees();
+                loadDashboard();
+            } catch (error) {
+                showAlert(error.message, 'danger');
+            }
+        }
+
+        // Load all data
+        loadDashboard();
+        loadCandidates();
+        loadEmployees();
+        loadVacations();
+        loadRequests();
+    </script>
+</body>
+</html>

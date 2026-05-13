@@ -1,195 +1,135 @@
-# Plataforma de Gestión de Recursos Humanos
+# UniGestión HR Platform
 
-## 📋 Descripción
+Plataforma integral de gestión de Recursos Humanos con inteligencia artificial para búsqueda semántica de candidatos.
 
-Sistema integral de gestión de recursos humanos desarrollado para el Politécnico Grancolombiano. Esta plataforma combina reclutamiento inteligente con gestión completa de empleados, utilizando algoritmos de IA para matching de candidatos y procesamiento automático de documentos.
+## Características Principales
 
-## 🚀 Características Principales
+- **Autenticación y Roles**: Login/Registro con roles (Candidato, Empleado, RH)
+- **Gestión de Candidatos**: Subida y parsing inteligente de CVs
+- **Matching con IA**: Búsqueda semántica de candidatos usando Sentence Transformers
+- **Chat RH tipo ChatGPT**: Interfaz conversacional para búsqueda de talento
+- **Portal del Empleado**: Dashboard, vacaciones, nómina, certificados, solicitudes
+- **Generación de PDFs**: Comprobantes de nómina y certificados laborales profesionales
+- **Dashboard RH**: Estadísticas y gestión centralizada
 
-### 🤖 Reclutamiento Inteligente
-- **Subida y análisis de CVs**: Soporte para PDF y DOCX con extracción automática de texto
-- **Matching híbrido**: Combina búsqueda por keywords con similitud semántica usando embeddings
-- **Chat-based search**: Los reclutadores pueden describir requisitos en lenguaje natural
-- **Sistema de puntuación**: Algoritmo inteligente que considera skills, áreas, experiencia y sinónimos
+## Stack Tecnológico
 
-### 👥 Gestión de Empleados
-- **Perfiles completos**: Información laboral, contacto y datos personales
-- **Gestión de vacaciones**: Solicitudes, aprobaciones y seguimiento
-- **Nómina**: Registro de salarios, bonos, deducciones y generación de comprobantes
-- **Documentos**: Certificados laborales y otros documentos oficiales en PDF
+| Componente | Tecnología |
+|-----------|-----------|
+| Backend | Python, FastAPI, SQLAlchemy |
+| Base de Datos | PostgreSQL 15 |
+| Frontend | HTML5, CSS3, Bootstrap 5, JavaScript Vanilla |
+| IA/NLP | Sentence Transformers, scikit-learn |
+| PDFs | ReportLab |
+| Infraestructura | Docker, Docker Compose |
 
-### 🔐 Sistema de Autenticación
-- **Roles diferenciados**: Candidato, Empleado, Recursos Humanos
-- **Dashboards específicos**: Interfaces adaptadas según el rol del usuario
-- **Seguridad**: Autenticación por email/contraseña
+## Inicio Rápido
 
-## 🏗️ Arquitectura
+### Requisitos
+- Docker y Docker Compose instalados
 
-### Backend
-- **Framework**: FastAPI (Python)
-- **Base de datos**: PostgreSQL
-- **ORM**: SQLAlchemy
-- **IA/ML**: Sentence Transformers para embeddings semánticos
-- **Documentos**: ReportLab para generación de PDFs
+### Ejecución
 
-### Frontend
-- **Tecnología**: HTML5 + Bootstrap + JavaScript
-- **Arquitectura**: Páginas estáticas servidas por FastAPI
-- **Responsive**: Diseño adaptativo para diferentes dispositivos
-
-### Infraestructura
-- **Contenedorización**: Docker + Docker Compose
-- **Base de datos**: PostgreSQL en contenedor
-- **Volúmenes**: Persistencia de datos y archivos subidos
-
-## 📊 Modelo de Datos
-
-### Tablas Principales
-- **Users**: Usuarios del sistema con roles
-- **CandidateProfile**: Perfiles estructurados de candidatos
-- **Employee**: Información completa de empleados
-- **Resume**: CVs subidos y texto extraído
-- **Payroll**: Registros de nómina
-- **Vacation**: Solicitudes de vacaciones
-- **Document**: Documentos asociados a empleados
-
-## 🔧 Instalación y Configuración
-
-### Prerrequisitos
-- Docker y Docker Compose
-- Python 3.11+ (opcional para desarrollo local)
-
-### Instalación con Docker
 ```bash
-# Clonar el repositorio
-git clone <url-del-repositorio>
-cd proyecto
-
-# Construir y ejecutar servicios
-docker-compose up --build
+docker compose up -d --build
 ```
 
-### Acceso a la aplicación
-- **API Backend**: http://localhost:8000
-- **Frontend**: http://localhost:8000/auth.html
-- **Base de datos**: localhost:5432 (hr_user/hr_password)
+La aplicación estará disponible en: **http://localhost:8000**
 
-### Configuración manual (desarrollo)
-```bash
-# Instalar dependencias
-pip install -r backend/requirements.txt
+### Credenciales Demo
 
-# Configurar base de datos
-# Editar DATABASE_URL en database.py si es necesario
+| Rol | Email | Contraseña |
+|-----|-------|-----------|
+| RH | admin@unigestion.com | admin123 |
+| Empleado | empleado@unigestion.com | emp123 |
+| Candidato | candidato@unigestion.com | cand123 |
 
-# Ejecutar migraciones
-python -c "from backend.app.database import Base, engine; Base.metadata.create_all(bind=engine)"
+## Estructura del Proyecto
 
-# Ejecutar aplicación
-uvicorn backend.app.main:app --reload
+```
+UniGestion/
+├── backend/
+│   ├── app/
+│   │   ├── main.py              # Aplicación FastAPI principal
+│   │   ├── models.py            # Modelos SQLAlchemy
+│   │   ├── database.py          # Configuración de BD
+│   │   ├── auth.py              # Autenticación JWT
+│   │   ├── matching.py          # Motor de matching con IA
+│   │   ├── documents.py         # Generación de PDFs
+│   │   ├── seed_data.py         # Datos demo
+│   │   ├── routes/
+│   │   │   ├── auth_routes.py   # Endpoints de autenticación
+│   │   │   ├── candidate_routes.py  # Endpoints de candidatos
+│   │   │   ├── employee_routes.py   # Endpoints de empleados
+│   │   │   └── rh_routes.py    # Endpoints de RH
+│   │   ├── static/
+│   │   │   ├── css/styles.css   # Estilos globales
+│   │   │   └── js/app.js       # JavaScript principal
+│   │   ├── templates/
+│   │   │   ├── auth.html        # Login/Registro
+│   │   │   ├── candidate.html   # Portal candidato
+│   │   │   ├── employee.html    # Portal empleado
+│   │   │   └── rh.html         # Panel RH
+│   │   └── assets/
+│   │       └── logo.png         # Logo corporativo
+│   ├── uploads/                 # CVs subidos
+│   ├── requirements.txt
+│   └── Dockerfile
+├── scripts/
+│   └── init.sql                 # Script SQL de referencia
+├── docker-compose.yml
+└── README.md
 ```
 
-## 📖 Uso
-
-### Para Candidatos
-1. **Registro**: Crear cuenta con documento de identidad
-2. **Subir CV**: Cargar CV en PDF o DOCX
-3. **Postular**: El sistema procesa automáticamente el CV
-
-### Para RH
-1. **Login**: Acceder con credenciales de administrador
-2. **Buscar candidatos**: Usar chat o filtros específicos
-3. **Gestionar empleados**: Aprobar vacaciones, generar documentos
-4. **Administrar nómina**: Ver y descargar comprobantes
-
-### Para Empleados
-1. **Login**: Acceder con credenciales personales
-2. **Solicitar vacaciones**: Enviar peticiones de tiempo libre
-3. **Ver nómina**: Consultar salarios y descargar comprobantes
-4. **Descargar documentos**: Obtener certificados laborales
-
-## 🔍 API Endpoints
+## Endpoints API
 
 ### Autenticación
-- `POST /register` - Registro de usuarios
-- `POST /login` - Inicio de sesión
+- `POST /api/auth/register` - Registro de usuario
+- `POST /api/auth/login` - Inicio de sesión
+- `GET /api/auth/me` - Usuario actual
 
 ### Candidatos
-- `POST /upload-cv/{user_id}` - Subir CV
-- `POST /chat-match` - Búsqueda conversacional
-- `POST /ai-match` - Matching semántico
+- `POST /api/candidates/upload-cv` - Subir CV (PDF)
+- `GET /api/candidates/profile` - Perfil del candidato
+- `GET /api/candidates/all` - Listar candidatos (RH)
 
 ### Empleados
-- `GET /employee/{user_id}` - Información del empleado
-- `GET /vacations/{user_id}` - Historial de vacaciones
-- `POST /vacations/request` - Solicitar vacaciones
-- `GET /payroll/{user_id}` - Historial de nómina
+- `GET /api/employee/profile` - Perfil y dashboard
+- `GET /api/employee/vacations` - Listar vacaciones
+- `POST /api/employee/vacations` - Solicitar vacaciones
+- `GET /api/employee/payroll` - Historial de nómina
+- `GET /api/employee/payroll/{id}/pdf` - Descargar nómina PDF
+- `GET /api/employee/certificate` - Descargar certificado laboral
+- `GET /api/employee/requests` - Listar solicitudes
+- `POST /api/employee/requests` - Crear solicitud
 
-### RH
-- `GET /rh/vacations` - Todas las solicitudes de vacaciones
-- `PUT /rh/vacations/{id}/approve` - Aprobar vacaciones
-- `GET /employee/certificate/{user_id}` - Generar certificado
+### Recursos Humanos
+- `GET /api/rh/dashboard` - Estadísticas
+- `GET /api/rh/candidates` - Listar candidatos
+- `POST /api/rh/convert-employee` - Convertir candidato a empleado
+- `GET /api/rh/employees` - Listar empleados
+- `GET /api/rh/vacations` - Listar vacaciones
+- `PUT /api/rh/vacations/{id}` - Aprobar/Rechazar vacación
+- `GET /api/rh/requests` - Listar solicitudes
+- `POST /api/rh/chat` - Chat IA de búsqueda
 
-## 🤖 Algoritmos de IA
+## Flujo Funcional
 
-### Matching de Candidatos
-- **Keywords matching**: Búsqueda exacta con sinónimos
-- **Semantic similarity**: Embeddings para comprensión contextual
-- **Scoring system**: Puntuación por skills (10pts), áreas (7pts), resumen (3pts)
+1. **Candidato** se registra → sube su CV → el sistema lo parsea y genera embeddings
+2. **RH** usa el Chat IA → busca candidatos con lenguaje natural → el motor de matching encuentra los mejores perfiles
+3. **RH** convierte candidato a empleado → se crea perfil de empleado
+4. **Empleado** accede a su portal → solicita vacaciones, consulta nómina, descarga certificados
+5. **RH** gestiona solicitudes → aprueba/rechaza vacaciones y solicitudes
 
-### Procesamiento de CVs
-- **Extracción de texto**: PDF con pdfplumber, DOCX con python-docx
-- **Parsing estructurado**: Identificación de skills, experiencia, educación
-- **Normalización**: Eliminación de acentos y conversión a minúsculas
+## Motor de IA
 
-## 📄 Generación de Documentos
-
-### Certificados Laborales
-- Información del empleado y empresa
-- Logo institucional
-- Firma digital simulada
-
-### Comprobantes de Nómina
-- Desglose de salario, bonos y deducciones
-- Tabla formateada con colores
-- Información del período
-
-## 🧪 Testing y Datos de Prueba
-
-### Generar CVs de prueba
-```bash
-cd backend/scripts
-python generate_cvs.py
-```
-
-### Usuario administrador por defecto
-- **Email**: admin@rh.com
-- **Password**: 123456
-- **Rol**: rh
-
-## 🔒 Seguridad
-
-- **Autenticación**: Email/contraseña (considerar implementar hashing)
-- **Roles**: Control de acceso basado en roles
-- **Validación**: Pydantic para entrada de datos
-- **CORS**: Configurado para desarrollo local
-
-## 🚧 Estado del Proyecto
-
-### Implementado ✅
-- Sistema completo de autenticación
-- Subida y parsing de CVs
-- Matching inteligente de candidatos
-- Gestión de empleados y vacaciones
-- Generación de documentos PDF
-- Interfaces web básicas
+El sistema utiliza **Sentence Transformers** (modelo `all-MiniLM-L6-v2`) para:
+- Generar embeddings de los CVs procesados
+- Calcular similitud coseno entre consultas y perfiles
+- Ranking inteligente con pesos por habilidades, experiencia y áreas
+- Soporte para consultas en español e inglés
 
 
-## 👥 Equipo
-Wilson David Florez 
-Juan Sebastian Rueda
-Proyecto desarrollado como parte del curso de Gestión de Proyectos en el Politécnico Grancolombiano.
+## Licencia
 
-## 📄 Licencia
-
-Este proyecto es propiedad del Politécnico Grancolombiano para fines académicos y de investigación.
+Proyecto académico/profesional - UniGestión HR Platform

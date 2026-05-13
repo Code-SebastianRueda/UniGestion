@@ -1,164 +1,213 @@
 """
-Generador de documentos PDF para el sistema de RRHH.
-
-Crea certificados laborales y comprobantes de nómina usando ReportLab.
-Incluye logos institucionales y formato profesional.
+Document generation module.
+Generates professional PDF documents using ReportLab.
 """
+import os
+from datetime import date, datetime
+from io import BytesIO
 
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib.enums import TA_CENTER
-from reportlab.lib.units import inch
-from reportlab.platypus import Image
-
-def generate_certificate(data, path):
-    """
-    Genera un certificado laboral en formato PDF.
-
-    Crea un documento oficial con información del empleado, cargo,
-    fecha de ingreso y salario actual.
-
-    Args:
-        data (dict): Información del empleado (name, user_id, position, start_date, salary)
-        path (str): Ruta donde guardar el PDF generado
-    """
-    styles = getSampleStyleSheet()
-
-    title = styles["Title"]
-    title.alignment = TA_CENTER
-
-    normal = styles["Normal"]
-
-    doc = SimpleDocTemplate(path)
-
-    content = []
-    import os
-
-    BASE_DIR = os.path.dirname(__file__)
-    logo_path = os.path.join(BASE_DIR, "assets", "logo.png")
-
-    try:
-        logo = Image(logo_path, width=2*inch, height=1*inch)
-        content.append(logo)
-    except Exception as e:
-        print("ERROR CARGANDO LOGO:", e)
-
-    content.append(Spacer(1, 10))
-
-    # EMPRESA
-    content.append(Paragraph("<b>POLITÉCNICO GRANCOLOMBIANO</b>", title))
-    content.append(Spacer(1, 10))
-
-    # TÍTULO
-    content.append(Paragraph("CERTIFICADO LABORAL", title))
-    content.append(Spacer(1, 30))
-
-    # TEXTO
-    texto = f"""
-    Se certifica que <b>{data['name']}</b>, identificado con documento número
-    <b>{data['user_id']}</b>, labora en nuestra institución en el cargo de
-    <b>{data['position']}</b> desde el día <b>{data['start_date']}</b>.
-    <br/><br/>
-    Actualmente devenga un salario mensual de <b>${data['salary']}</b>.
-    <br/><br/>
-    Este documento se expide a solicitud del interesado para los fines que estime convenientes.
-    """
-
-    content.append(Paragraph(texto, normal))
-    content.append(Spacer(1, 60))
-
-    # FIRMA
-    content.append(Paragraph("__________________________________", normal))
-    content.append(Spacer(1, 5))
-    content.append(Paragraph("<b>Recursos Humanos</b>", normal))
-    content.append(Paragraph("Politécnico Grancolombiano", normal))
-
-    doc.build(content)
-
-# ==============================
-# GENERACIÓN DE NÓMINA
-# ==============================
-
-from reportlab.platypus import Table, TableStyle
 from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch, cm
+from reportlab.platypus import (
+    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
+)
+from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
 
-def generate_payroll_pdf(data, path):
-    """
-    Genera un comprobante de nómina en formato PDF.
+LOGO_PATH = os.path.join(os.path.dirname(__file__), "assets", "logo.png")
+COMPANY_NAME = "UniGestión HR Platform"
+COMPANY_ADDRESS = "Av. Principal #123, Ciudad Empresarial"
+COMPANY_PHONE = "+57 300 123 4567"
 
-    Crea un documento con el desglose de salario, bonos, deducciones
-    y neto a pagar para un período específico.
 
-    Args:
-        data (dict): Datos de nómina (period, salary, bonuses, deductions, net_salary)
-        path (str): Ruta donde guardar el PDF generado
-    """
+def _get_logo():
+    """Get logo image if exists, otherwise return None."""
+    if os.path.exists(LOGO_PATH):
+        return Image(LOGO_PATH, width=1.5*inch, height=0.75*inch)
+    return None
+
+
+def _get_styles():
+    """Get custom paragraph styles."""
     styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(
+        name='CustomTitle',
+        parent=styles['Title'],
+        fontSize=18,
+        spaceAfter=20,
+        textColor=colors.HexColor('#1a237e')
+    ))
+    styles.add(ParagraphStyle(
+        name='CustomBody',
+        parent=styles['Normal'],
+        fontSize=11,
+        leading=16,
+        alignment=TA_JUSTIFY
+    ))
+    styles.add(ParagraphStyle(
+        name='Footer',
+        parent=styles['Normal'],
+        fontSize=8,
+        textColor=colors.grey,
+        alignment=TA_CENTER
+    ))
+    return styles
 
-    title = styles["Title"]
-    title.alignment = TA_CENTER
 
-    normal = styles["Normal"]
+def generate_payroll_pdf(employee_data: dict, payroll_data: dict) -> BytesIO:
+    """
+    Generate a professional payroll slip PDF.
+    
+    Args:
+        employee_data: Dict with employee info (name, id, department, position)
+        payroll_data: Dict with payroll info (period, salary, bonuses, deductions, net_salary)
+    
+    Returns:
+        BytesIO buffer with the PDF content
+    """
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=1*cm, bottomMargin=1*cm)
+    elements = []
+    styles = _get_styles()
 
-    doc = SimpleDocTemplate(path)
+    # Header with logo
+    logo = _get_logo()
+    if logo:
+        elements.append(logo)
+    elements.append(Spacer(1, 10))
+    elements.append(Paragraph(COMPANY_NAME, styles['CustomTitle']))
+    elements.append(Paragraph(COMPANY_ADDRESS, styles['Normal']))
+    elements.append(Spacer(1, 20))
 
-    content = []
-    import os
+    # Title
+    elements.append(Paragraph("COMPROBANTE DE NÓMINA", styles['CustomTitle']))
+    elements.append(Spacer(1, 15))
 
-    BASE_DIR = os.path.dirname(__file__)
-    logo_path = os.path.join(BASE_DIR, "assets", "logo.png")
-
-    try:
-        logo = Image(logo_path, width=2*inch, height=1*inch)
-        content.append(logo)
-    except Exception as e:
-        print("ERROR CARGANDO LOGO:", e)
-
-    content.append(Spacer(1, 10))
-
-    # EMPRESA
-    content.append(Paragraph("<b>POLITÉCNICO GRANCOLOMBIANO</b>", title))
-    content.append(Spacer(1, 10))
-
-    # TÍTULO
-    content.append(Paragraph("DESPRENDIBLE DE NÓMINA", title))
-    content.append(Spacer(1, 20))
-
-    # PERIODO
-    content.append(Paragraph(f"<b>Periodo:</b> {data['period']}", normal))
-    content.append(Spacer(1, 20))
-
-    # TABLA
-    table_data = [
-        ["Concepto", "Valor"],
-        ["Salario", f"${data['salary']}"],
-        ["Bonificaciones", f"${data['bonuses']}"],
-        ["Deducciones", f"${data['deductions']}"],
-        ["NETO A PAGAR", f"${data['net_salary']}"]
+    # Employee info table
+    emp_data = [
+        ["Empleado:", employee_data.get("full_name", "N/A")],
+        ["ID Empleado:", employee_data.get("employee_id", "N/A")],
+        ["Departamento:", employee_data.get("department", "N/A")],
+        ["Cargo:", employee_data.get("position", "N/A")],
+        ["Período:", payroll_data.get("period", "N/A")],
     ]
-
-    table = Table(table_data, colWidths=[250, 150])
-
-    table.setStyle(TableStyle([
-        ("BACKGROUND", (0,0), (-1,0), colors.HexColor("#1e3a8a")),
-        ("TEXTCOLOR",(0,0),(-1,0),colors.white),
-
-        ("FONTNAME", (0,0), (-1,0), "Helvetica-Bold"),
-        ("FONTNAME", (0,-1), (-1,-1), "Helvetica-Bold"),
-
-        ("ALIGN",(0,0),(-1,-1),"CENTER"),
-
-        ("GRID", (0,0), (-1,-1), 1, colors.black),
-
-        ("BACKGROUND", (0,-1), (-1,-1), colors.HexColor("#e5e7eb")),
+    emp_table = Table(emp_data, colWidths=[2.5*inch, 4*inch])
+    emp_table.setStyle(TableStyle([
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
     ]))
+    elements.append(emp_table)
+    elements.append(Spacer(1, 25))
 
-    content.append(table)
-    content.append(Spacer(1, 40))
+    # Payroll details table
+    payroll_table_data = [
+        ["Concepto", "Valor"],
+        ["Salario Base", f"${payroll_data.get('salary', 0):,.2f}"],
+        ["Bonificaciones", f"${payroll_data.get('bonuses', 0):,.2f}"],
+        ["Deducciones", f"-${payroll_data.get('deductions', 0):,.2f}"],
+        ["", ""],
+        ["SALARIO NETO", f"${payroll_data.get('net_salary', 0):,.2f}"],
+    ]
+    pay_table = Table(payroll_table_data, colWidths=[3.5*inch, 3*inch])
+    pay_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a237e')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 11),
+        ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+        ('TOPPADDING', (0, 0), (-1, -1), 10),
+        ('GRID', (0, 0), (-1, -2), 0.5, colors.grey),
+        ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#e8eaf6')),
+        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, -1), (-1, -1), 12),
+    ]))
+    elements.append(pay_table)
+    elements.append(Spacer(1, 30))
 
-    # FIRMA
-    content.append(Paragraph("__________________________________", normal))
-    content.append(Spacer(1, 5))
-    content.append(Paragraph("<b>Departamento de Recursos Humanos</b>", normal))
+    # Payment date
+    elements.append(Paragraph(
+        f"Fecha de pago: {payroll_data.get('payment_date', date.today().isoformat())}",
+        styles['CustomBody']
+    ))
+    elements.append(Spacer(1, 40))
 
-    doc.build(content)
+    # Footer
+    elements.append(Paragraph(
+        f"Documento generado automáticamente por {COMPANY_NAME} - {datetime.now().strftime('%d/%m/%Y %H:%M')}",
+        styles['Footer']
+    ))
+
+    doc.build(elements)
+    buffer.seek(0)
+    return buffer
+
+
+def generate_certificate_pdf(employee_data: dict) -> BytesIO:
+    """
+    Generate a professional work certificate PDF.
+    
+    Args:
+        employee_data: Dict with employee info
+    
+    Returns:
+        BytesIO buffer with the PDF content
+    """
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=2*cm, bottomMargin=2*cm)
+    elements = []
+    styles = _get_styles()
+
+    # Header
+    logo = _get_logo()
+    if logo:
+        elements.append(logo)
+    elements.append(Spacer(1, 10))
+    elements.append(Paragraph(COMPANY_NAME, styles['CustomTitle']))
+    elements.append(Paragraph(COMPANY_ADDRESS, styles['Normal']))
+    elements.append(Paragraph(COMPANY_PHONE, styles['Normal']))
+    elements.append(Spacer(1, 40))
+
+    # Title
+    elements.append(Paragraph("CERTIFICADO LABORAL", styles['CustomTitle']))
+    elements.append(Spacer(1, 30))
+
+    # Body
+    full_name = employee_data.get("full_name", "N/A")
+    employee_id = employee_data.get("employee_id", "N/A")
+    position = employee_data.get("position", "N/A")
+    department = employee_data.get("department", "N/A")
+    hire_date = employee_data.get("hire_date", "N/A")
+
+    body_text = f"""
+    El departamento de Recursos Humanos de <b>{COMPANY_NAME}</b> certifica que:
+    <br/><br/>
+    <b>{full_name}</b>, identificado(a) con código de empleado <b>{employee_id}</b>,
+    se encuentra vinculado(a) a nuestra organización desde el <b>{hire_date}</b>,
+    desempeñando el cargo de <b>{position}</b> en el departamento de <b>{department}</b>.
+    <br/><br/>
+    El presente certificado se expide a solicitud del interesado(a) para los fines
+    que estime convenientes.
+    <br/><br/>
+    Dado en la ciudad, a los {date.today().day} días del mes de {date.today().strftime('%B')} de {date.today().year}.
+    """
+    elements.append(Paragraph(body_text, styles['CustomBody']))
+    elements.append(Spacer(1, 60))
+
+    # Signature
+    elements.append(Paragraph("_" * 40, styles['Normal']))
+    elements.append(Paragraph("<b>Departamento de Recursos Humanos</b>", styles['Normal']))
+    elements.append(Paragraph(COMPANY_NAME, styles['Normal']))
+    elements.append(Spacer(1, 40))
+
+    # Footer
+    elements.append(Paragraph(
+        f"Documento generado automáticamente - {datetime.now().strftime('%d/%m/%Y %H:%M')}",
+        styles['Footer']
+    ))
+
+    doc.build(elements)
+    buffer.seek(0)
+    return buffer
