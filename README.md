@@ -129,12 +129,6 @@ El sistema utiliza **Sentence Transformers** (modelo `all-MiniLM-L6-v2`) para:
 - Ranking inteligente con pesos por habilidades, experiencia y áreas
 - Soporte para consultas en español e inglés
 
-## Notas
-
-- La primera ejecución descargará el modelo de IA (~90MB)
-- Los PDFs se generan dinámicamente con ReportLab
-- Coloca un archivo `logo.png` en `backend/app/assets/` para personalizar los PDFs
-- La base de datos se inicializa automáticamente con datos demo
 
 ## Licencia
 
